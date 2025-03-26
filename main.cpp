@@ -1,5 +1,5 @@
-#include "petersons_algorithm.cpp"
-#include "coarse.cpp"
+// #include "petersons_algorithm.cpp"
+// #include "coarse.cpp"
 #include "fine.cpp"
 
 #include <iostream>
@@ -27,8 +27,10 @@ int main(int argc, char *argv[])
     cout << "Usage: " << argv[0] << " <n philosophers (at least 2)>" << endl;
     return 1;
   }
-
+  int n = atoi(argv[1]);
   atomic n = atoi(argv[1]);
+
+  fine algorithm(n);
 
   return 0;
 }
