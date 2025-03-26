@@ -8,9 +8,9 @@ class PetersonLock{
 
   void lock(int pid){
     flag[pid] = true;
-    turn = pid - 1;
+    turn = 1 - pid;
 
-    while(flag[pid-1] && turn == pid-1) 
+    while(flag[1-pid] && turn != pid) // other wants and their turn
       ;  // spin
   }
 
