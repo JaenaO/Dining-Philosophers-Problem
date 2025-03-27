@@ -3,18 +3,19 @@
 using namespace std;
 
 class PetersonLock{
-  atomic flag[2] = {false, false};
-  atomic turn = 0;
+  public:
+    atomic flag[2] = {false, false};
+    atomic turn = 0;
 
-  void lock(int pid){
-    flag[pid] = true;
-    turn = 1 - pid;
+    void lock(int pid){
+      flag[pid] = true;
+      turn = 1 - pid;
 
-    while(flag[1-pid] && turn != pid) // other wants and their turn
-      ;  // spin
-  }
+      while(flag[1-pid] && turn != pid) // other wants and their turn
+        ;  // spin
+    }
 
-  void unlock(int pid){
-    flag[pid] = false;
-  }
+    void unlock(int pid){
+      flag[pid] = false;
+    }
 };
