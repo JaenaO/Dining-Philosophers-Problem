@@ -1,11 +1,14 @@
+#ifndef PETERSONS_ALGORITHM_H
+#define PETERSONS_ALGORITHM_H
+
 #include <atomic>
 
 using namespace std;
 
 class PetersonLock{
   public:
-    atomic flag[2] = {false, false};
-    atomic turn = 0;
+    atomic<bool> flag[2] = {false, false};
+    atomic<int> turn = 0;
 
     void lock(int pid){
       flag[pid] = true;
@@ -19,3 +22,5 @@ class PetersonLock{
       flag[pid] = false;
     }
 };
+
+#endif
