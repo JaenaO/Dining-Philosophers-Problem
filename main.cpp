@@ -16,7 +16,6 @@
 #include <signal.h>
 #include <cstdlib> // For exit()
 
-
 using namespace std;
 
 int main(int argc, char *argv[])
@@ -28,34 +27,39 @@ int main(int argc, char *argv[])
   }
 
   atomic<int> n = atoi(argv[1]);
-  thread* philosophers = new thread[n];  // create an array of threads
+  thread *philosophers = new thread[n]; // create an array of threads
 
-  for(int i=0; i<n; i++){
-    philosophers[i] = thread(i);  // create a thread for each philosopher
+  for (int i = 0; i < n; i++)
+  {
+    philosophers[i] = thread(i); // create a thread for each philosopher
   }
 
   // code from websites provided in instructions pdf
-  random_device rd;  // a seed source for the random number engine
-  mt19937 gen(rd()); // mersenne_twister_engine seeded with rd()
+  random_device rd;                           // a seed source for the random number engine
+  mt19937 gen(rd());                          // mersenne_twister_engine seeded with rd()
   uniform_int_distribution<> distrib(1, 500); // range of random numbers 1-500
 
   cout << "Coarse Solution" << endl;
   TTLock coarseLock = TTLock(n);
-  for(int i=0; i<n; i++){
-    while(true){
+  for (int i = 0; i < n; i++)
+  {
+    while (true)
+    {
       cout << "Philosopher " << i << ": starts thinking." << endl;
-      sleep(distrib(gen)); 
+      sleep(distrib(gen));
       cout << "Philosopher " << i << ": ends thinking." << endl;
-      if(i<4){
-        coarseLock.acquire(i);  
-        coarseLock.acquire((i + 1) % n);  
-      }
-      else{
+      if (i < 4)
+      {
+        coarseLock.acquire(i);
         coarseLock.acquire((i + 1) % n);
-        coarseLock.acquire(i);  
+      }
+      else
+      {
+        coarseLock.acquire((i + 1) % n);
+        coarseLock.acquire(i);
       }
       cout << "Philosopher " << i << ": starts eating." << endl;
-      sleep(distrib(gen)); 
+      sleep(distrib(gen));
       cout << "Philosopher " << i << ": ends eating." << endl;
 
       coarseLock.release(i);
@@ -64,32 +68,24 @@ int main(int argc, char *argv[])
   }
   /*
   pseudocode from slides
-  repeat (forever) 
-  begin 
-  Think 
-  Feeling Hungry 
-  if (i < 4) then 
-    acquire chopstick[i]; 
-    acquire chopstick[(i + 1) (mod 5)]; 
-  else 
-    acquire chopstick[(i + 1) (mod 5)]; 
-    acquire chopstick[i]; 
-  end if 
-  Eat 
-  release chopstick[i]; 
-  release chopstick[(i + 1) (mod 5)]; 
+  repeat (forever)
+  begin
+  Think
+  Feeling Hungry
+  if (i < 4) then
+    acquire chopstick[i];
+    acquire chopstick[(i + 1) (mod 5)];
+  else
+    acquire chopstick[(i + 1) (mod 5)];
+    acquire chopstick[i];
+  end if
+  Eat
+  release chopstick[i];
+  release chopstick[(i + 1) (mod 5)];
   end repeat
   */
-    
-  philosophers[0].join();  // wait for all threads to finish
 
-  // cout << "Fine Solution" << endl;
-
-  // for(int i=0; i<n; i++){
-  //   philosophers[i].join();  // wait for all threads to finish
-  // }
-
-  // fine algorithm(n);
+  philosophers[0].join(); // wait for all threads to finish
 
   return 0;
 }
