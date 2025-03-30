@@ -19,9 +19,9 @@
 
 using namespace std;
 
-void solution()
+void philosopher(int id)
 {
-    cout << "solution";
+    std::cout << "Philosopher " << id << " is thinking.\n";
 }
 
 int main(int argc, char *argv[])
@@ -36,24 +36,18 @@ int main(int argc, char *argv[])
     cout << "Fine Solution\n";
     int n = atoi(argv[1]);
 
-    thread *philosophers = new thread[n]; // create an array of threads
+    vector<std::thread> philosophers;
 
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < n; ++i)
     {
-        philosophers[i] = thread(i); // create a thread for each philosopher
+        philosophers.emplace_back([i]()
+                                  { philosopher(i); });
     }
 
-    for (int i = 0; i < n; i++)
+    for (auto &t : philosophers)
     {
-        if (this_thread::get_id() == philosophers[i].get_id())
-        {
-            fine a(i);
-        }
+        t.join();
     }
 
-    for (int i = 0; i < n; i++)
-    {
-        philosophers[i].join();
-    }
     return 0;
 }
