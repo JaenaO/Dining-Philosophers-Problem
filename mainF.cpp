@@ -16,13 +16,22 @@
 #include <cstdlib> // For exit()
 
 #include "fine.cpp"
+#include "finePeterLock.cpp"
 
 using namespace std;
 
 void philosopher(int id, int n)
 {
-    cout << "Philosopher " << id << " is here.\n";
+    finePeterLock chopsticks[n];
+
     fine a(id);
+
+    while (true)
+    {
+        a.thinking();
+
+        break;
+    }
 }
 
 int main(int argc, char *argv[])

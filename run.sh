@@ -2,4 +2,4 @@
 # ./run.sh in terminal
 clear
 g++ -std=c++11 mainF.cpp
-./a.out 2
+./a.out 5

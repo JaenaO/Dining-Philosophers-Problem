@@ -1,6 +1,4 @@
-// Katy
-// giving each process a turn at the shared memory
-// #include "petersons_algorithm.cpp"
+// Katy Soddy
 
 #include <atomic>
 #include <thread>
@@ -32,7 +30,6 @@ public:
     { // default constructor
         pnum = n;
         sleep = 0;
-        cout << pnum << endl;
 
         mt19937 gen(rd()); // mersenne_twister_engine seeded with rd()
         uniform_int_distribution<> distrib(1, 500);
@@ -57,5 +54,12 @@ public:
         cout << "Philosopher " << pnum << ": starts thinking\n";
         this_thread::sleep_for(chrono::milliseconds(sleep));
         cout << "Philosopher " << pnum << ": ends thinking\n";
+        hungry();
+    }
+
+    void hungry()
+    {
+        cout << "Philosopher " << pnum << ": is hungry\n";
+        eating();
     }
 };
