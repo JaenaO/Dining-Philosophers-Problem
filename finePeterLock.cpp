@@ -21,24 +21,33 @@ class finePeterLock
 private:
     atomic<bool> flag[2];
     atomic<int> turn;
+    atomic<int> lockStatus;
 
 public:
     finePeterLock() : turn(0) // Initialize atomic<int> directly
     {
         flag[0].store(false); // Initialize each atomic<bool> individually
         flag[1].store(false);
+        lockStatus.store(0);
     }
 
-    void lock(int pid)
+    void lock(int process) // process = i, process+1 = j
     {
-        flag[pid].store(true);
-        turn.store(1 - pid);
-        while (flag[1 - pid] && turn != pid)
+        lockStatus.store(1);
+        flag[process].store(true);
+        turn.store(process + 1);
+        while (flag[process + 1] && turn != process + 1)
             ;
     }
 
-    void unlock(int pid)
+    void unlock(int process)
     {
-        flag[pid].store(false);
+        flag[process].store(false);
+        lockStatus.store(0);
+    }
+
+    int checkLockStatus()
+    {
+        return lockStatus;
     }
 };

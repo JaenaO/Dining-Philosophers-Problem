@@ -16,22 +16,15 @@
 #include <cstdlib> // For exit()
 
 #include "fine.cpp"
-#include "finePeterLock.cpp"
 
 using namespace std;
 
 void philosopher(int id, int n)
 {
-    finePeterLock chopsticks[n];
+    finePeterLock *chopsticks[n];
 
-    fine a(id);
-
-    while (true)
-    {
-        a.thinking();
-
-        break;
-    }
+    fine a(id, chopsticks[n], chopsticks[n - 1]);
+    a.thinking();
 }
 
 int main(int argc, char *argv[])
