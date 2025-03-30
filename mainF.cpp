@@ -19,15 +19,23 @@
 
 using namespace std;
 
+void solution()
+{
+    cout << "solution";
+}
+
 int main(int argc, char *argv[])
 {
+    cout << " \n\n\n---------- Fine Solution ---------\n\n\n";
     if (argc < 2 || atoi(argv[1]) < 2)
     {
         cout << "Usage: " << argv[0] << " <n philosophers (at least 2)>" << endl;
         return 1;
     }
 
+    cout << "Fine Solution\n";
     int n = atoi(argv[1]);
+
     thread *philosophers = new thread[n]; // create an array of threads
 
     for (int i = 0; i < n; i++)
@@ -35,12 +43,17 @@ int main(int argc, char *argv[])
         philosophers[i] = thread(i); // create a thread for each philosopher
     }
 
-    // code from websites provided in instructions pdf
-    random_device rd;                           // a seed source for the random number engine
-    mt19937 gen(rd());                          // mersenne_twister_engine seeded with rd()
-    uniform_int_distribution<> distrib(1, 500); // range of random numbers 1-500
+    for (int i = 0; i < n; i++)
+    {
+        if (this_thread::get_id() == philosophers[i].get_id())
+        {
+            fine a(i);
+        }
+    }
 
-    fine algorithm(n);
-
+    for (int i = 0; i < n; i++)
+    {
+        philosophers[i].join();
+    }
     return 0;
 }
