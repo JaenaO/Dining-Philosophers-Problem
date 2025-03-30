@@ -22,9 +22,20 @@ using namespace std;
 void philosopher(int id, int n)
 {
     finePeterLock *chopsticks[n];
-
-    fine a(id, chopsticks[n], chopsticks[n - 1]);
+    fine a(id, chopsticks[id], chopsticks[id - 1]);
     a.thinking();
+
+    if (id < n)
+    {
+        acquire chopstick[i];
+        acquire choptick[(i + 1)(% 5)];
+    }
+    else
+    {
+        acquire chopstick[(i + 1) % n];
+    }
+    // eat
+    release chopstick[i] release chopstick[(i + 1)(% n)];
 }
 
 int main(int argc, char *argv[])

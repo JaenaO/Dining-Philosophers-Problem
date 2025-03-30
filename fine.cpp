@@ -47,9 +47,7 @@ public:
     void thinking()
     {
         cout << "Philosopher " << pnum << ": starts thinking\n";
-        randomizeSleep();
-
-        this_thread::sleep_for(chrono::milliseconds(500));
+        this_thread::sleep_for(chrono::milliseconds(sleep));
 
         cout << "Philosopher " << pnum << ": ends thinking\n";
 
@@ -87,7 +85,6 @@ public:
         // lock processes
         L->lock(pnum);
         // nom nom nom
-        randomizeSleep();
         this_thread::sleep_for(chrono::milliseconds(sleep));
         L->unlock(pnum);
         cout << "Philosopher " << pnum << ": ends eating\n";
