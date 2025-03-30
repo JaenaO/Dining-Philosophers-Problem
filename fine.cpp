@@ -32,7 +32,7 @@ public:
     { // default constructor
         pnum = n;
         sleep = 0;
-        cout << pnum;
+        cout << pnum << endl;
 
         mt19937 gen(rd()); // mersenne_twister_engine seeded with rd()
         uniform_int_distribution<> distrib(1, 500);
