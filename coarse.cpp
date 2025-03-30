@@ -10,19 +10,22 @@
 using namespace std;
 
 // our peterson's lock implementation
-// it has two atomic variables: flags to show intenet to enter the critical section, and turn to show which thread's turn it is
+// a lock for synchronization between two threads which we will use in our tournament tree lock
 class PetersonLock{
   public:
-    atomic<bool> flag[2];
-    atomic<int> turn;
+    atomic<bool> flag[2]; // flag to show intenet to enter the critical section
+    atomic<int> turn; // turn to show which thread's turn it is
 
+    // constructor to initalize the variables
     PetersonLock(){ 
       flag[0] = false;
       flag[1] = false;
       turn = 0;
     }
 
-    void lock(int pid){
+    // lock function for a certain thread, pid, to acquire the lock
+    // alogrithm follows the solution given in the slides
+    void lock(int pid){ 
       flag[pid] = true;
       turn = 1 - pid;
 
@@ -30,43 +33,53 @@ class PetersonLock{
         ;  // spin
     }
 
+    // unlock function for a certain thread, pid, to release the lock
     void unlock(int pid){
       flag[pid] = false;
     }
 };
 
-// our tournament tree lock implementation
-// it has two variables: the number of locks and the array of peterson locks
-// the array is how the tree is represented
-// it is a 2-ary tree where each node is a peterson lock
+
+//our tournament tree lock implementation
+//this lock is the coarse solution to the dining philosophers problem
 class TTLock{  
   public:
+    int n; // number of philosophers
     int locks;  // number of locks in the tree
     PetersonLock* nodes;  // create an array of peterson locks
 
-    TTLock(int n){  // constructor
-      locks = n - 1;
+    // constructor to initialize the number of philosophers, locks, and array
+    TTLock(int num){ 
+      n = num;
+      locks = n-1;
       nodes = new PetersonLock[locks];
     }
 
-    void acquire(int pid, int index){
+    // recursive acquire function to acquire the lock for a certain thread, pid
+    // it goes up the tree and acquires locks on the way until it reaches the root where it wins
+    // when it becomes the winner of the tournament will be the one to acquire the lock and go into critical section
+    void acquire(int pid){
       
     }
     
-    void release(int pid, int index){
-
+    // recursive release function to release the lock for a certain thread, pid
+    // it goes down the tree and unlocks the locks that were previously acquired by the thread
+    void release(int pid){
+      
     }
 
-    int leaf_position(int pid){  // maps thread ID to its leaf node in the binary tree
-      return locks-(locks / 2)+pid;  // each thread starts at a leaf node
+    // function to get the number of philosophers
+    int getn(){
+      return n;
     }
 
-    int getLocks(){
-      return locks;
+    // destructor to delete the array of locks/tree nodes
+    ~TTLock(){  
+      delete[] nodes;
     }
 };
 
-// helper function for the pihlosopher functions
+// helper function for the philosopher functions below
 // it generates a random number between 1 and 500ms for the sleep time
 chrono::milliseconds random_ms(){
   // code from websites provided in instructions pdf
@@ -80,34 +93,31 @@ chrono::milliseconds random_ms(){
 // the time between the start and end is randomized
 // the parameter i is the philosopher/thread number
 void thinking(int i){
+  chrono::milliseconds rand = random_ms();
   cout << "Philosopher " << i << ": starts thinking." << endl;
-  this_thread::sleep_for(random_ms()); 
-  cout << "Philosopher " << i << ": ends thinking." << endl;
+  this_thread::sleep_for(rand); 
+  cout << "Philosopher " << i << ": ends thinking.\tThinking time: " << rand.count() << "ms" << endl;
 }
 
 // philosopher function where it states when it starts and ends eating
 // the time between the start and end is randomized
 // the parameter i is the philosopher/thread number
 void eating(int i){
+  chrono::milliseconds rand = random_ms();
   cout << "Philosopher " << i << ": starts eating." << endl;
-  this_thread::sleep_for(random_ms()); 
-  cout << "Philosopher " << i << ": ends eating." << endl;
+  this_thread::sleep_for(rand); 
+  cout << "Philosopher " << i << ": ends eating.\tEating time: " << rand.count() << "ms" << endl;
 }
 
+// the main philosopher function where it calls the thinking and eating functions above
+// i is the philosopher/thread number and it uses the TTLock for synchronization
 auto philosopherDine = [](int i, TTLock& lock){
-  int n = lock.getLocks()+1;
+  int n = lock.getn();
+
   thinking(i);
-  if(i < n-1){
-    lock.acquire(i, -1);  
-    lock.acquire((i+1)%n, -1);  
-  }
-  else{
-    lock.acquire((i+1)%n, -1);
-    lock.acquire(i, -1);  
-  }
+  lock.acquire(i);
   eating(i);
-  lock.release(i, -1);
-  lock.release((i + 1) % n, -1);
+  lock.release(i);
 };
 
 int main(int argc, char *argv[])
@@ -120,8 +130,8 @@ int main(int argc, char *argv[])
 
   int n = atoi(argv[1]);
   thread* philosophers = new thread[n];  // create an array of threads
-
   TTLock coarseLock = TTLock(n);
+
   for(int i=0; i<n; i++){
     philosophers[i] = thread(philosopherDine, i, ref(coarseLock));
   }
@@ -129,6 +139,8 @@ int main(int argc, char *argv[])
   for( int i=0; i<n; i++){
     philosophers[i].join();  // wait for all threads to finish
   }
+
+  delete[] philosophers;
 
   return 0;
 }
