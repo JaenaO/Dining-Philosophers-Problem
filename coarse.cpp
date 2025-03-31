@@ -61,23 +61,23 @@ class TTLock {
     // when it "wins" the tournament, it will go into the critical section
     void acquire(int pid) {
       int start = numLocks+pid;
-      int depth = start%2;
-      acquire_helper(start, depth);
+      int flag = start%2;
+      acquire_helper(start, flag);
     }
 
     // helper function to acquire the locks
     // it will be called by the acquire function and assist in acquiring the locks with recursion
-    // the parameters are the current node and the depth of the tree
-    void acquire_helper(int currentNode, int depth){
+    // the parameters are the current node and the flag index for petersons algorithm
+    void acquire_helper(int currentNode, int flag){
       if (currentNode == 0){ // base case: current has reached the root and can go into the critical section
         return;
       }
       else{
         int nextNode = (currentNode-1)/2;
-        locks[nextNode].lock(depth);
+        locks[nextNode].lock(flag);
         
-        int newDepth = nextNode%2;
-        acquire_helper(nextNode, newDepth);
+        int nextFlag = nextNode%2;
+        acquire_helper(nextNode, nextFlag);
       }
     }
   
@@ -85,23 +85,23 @@ class TTLock {
     // it will go back up the tree and release all the locks it acquired
     void release(int pid) {
       int start = numLocks+pid;
-      int depth = start%2;
-      release_helper(start, depth);
+      int flag = start%2;
+      release_helper(start, flag);
     }
 
     // helper function to release the locks
     // it will be called by the release function and assist in releasing the locks with recursion
-    // the parameters are the current node and the depth of the tree
-    void release_helper(int currentNode, int depth){
+    // the parameters are the current node and the flag index for petersons algorithm
+    void release_helper(int currentNode, int flag){
       if (currentNode == 0){ // base case: current has reached the root so all locks have been released
         return;
       }
       else{
         int nextNode = (currentNode-1)/2;
-        locks[nextNode].unlock(depth);
+        locks[nextNode].unlock(flag);
 
-        int newDepth = nextNode%2;
-        release_helper(nextNode, newDepth);
+        int nextFlag = nextNode%2;
+        release_helper(nextNode, nextFlag);
       } 
     }
   };
