@@ -1,8 +1,9 @@
+// Katy Soddy
+
 #include <iostream>
 #include <atomic>
 #include <thread>
 #include <random>
-
 #include <fstream>
 #include <string>
 #include <cmath>
@@ -51,23 +52,15 @@ void eating(int id)
     safe_print("Philosopher " + to_string(id + 1) + ": ends eating");
 }
 
+// what each philosopher is doing
 void philosopher(int id, int n, finePeterLock *chopsticks)
 {
     thinking(id);
 
-    // if (id == 0)
-    // {
-    //     chopsticks[0].lock(0, 0);
-    // }
-
-    // if (id == 1)
-    // {
-    //     chopsticks[0].lock(1, 1);
-    // }
-
     while (true)
     {
-        // Uses the third attempt algorithm from the slides
+        // The third attempt algorithm from the slides
+        // acquire
         if (id < n - 1)
         {
             chopsticks[id].lock(1, id);
@@ -89,7 +82,7 @@ void philosopher(int id, int n, finePeterLock *chopsticks)
 
 int main(int argc, char *argv[])
 {
-    cout << "---------- Fine Solution ---------\n\n\n";
+    cout << "Fine Solution: \n\n";
     if (argc < 2 || atoi(argv[1]) < 2)
     {
         cout << "Usage: " << argv[0] << " <n philosophers (at least 2)>" << endl;
@@ -98,21 +91,17 @@ int main(int argc, char *argv[])
 
     int n = atoi(argv[1]);
 
-    // initialize locks
-    // vector<finePeterLock> chopsticks(n);
-    // for (int i = 0; i < n; i++)
-    // {
-    //     chopsticks[i] = new finePeterLock();
-    // }
-
+    // initialize n instances of locks
     vector<finePeterLock> chopsticks(n);
+    // each philosopher
     vector<thread> philosophers;
-
+    // each philosopher runs the philosopher() method
     for (int i = 0; i < n; ++i)
     {
         philosophers.emplace_back(philosopher, i, n, chopsticks.data());
     }
 
+    // safely terminate
     for (auto &t : philosophers)
     {
         t.join();

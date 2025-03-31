@@ -35,16 +35,13 @@ public:
         flag[pid].store(true, memory_order_release);
         turn.store(1 - pid, memory_order_release); // Give turn to the other process
         // Wait until the other process is not interested or it's your turn
-        // flag[1 - pid].load(memory_order_acquire) && turn.load(memory_order_acquire) == (1 - pid)
         while (flag[1 - pid].load(memory_order_acquire) && turn.load(memory_order_acquire) == (1 - pid))
         {
             // spin
-            // cout << p << endl;
         }
-        // cout << p << " here\n";
     }
 
-    void unlock(int process)
+    void unlock(int process) // Process is 0 or 1
     {
         flag[process].store(false, memory_order_release);
     }
