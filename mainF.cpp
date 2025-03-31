@@ -14,28 +14,59 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <cstdlib> // For exit()
-
+#include <mutex>
 #include "fine.cpp"
-
 using namespace std;
+
+mutex cout_mutex;
+
+void safe_print(const string &message)
+{
+    lock_guard<mutex> guard(cout_mutex);
+    cout << message << endl;
+}
+
+void thinking(int id)
+{
+    safe_print("Philosopher " + to_string(id) + ": starts thinking");
+    this_thread::sleep_for(chrono::milliseconds(500));
+    safe_print("Philosopher " + to_string(id) + ": ends thinking");
+}
+
+void eating(int id)
+{
+    safe_print("Philosopher " + to_string(id) + ": starts eating");
+    this_thread::sleep_for(chrono::milliseconds(500));
+    safe_print("Philosopher " + to_string(id) + ": ends eating");
+}
 
 void philosopher(int id, int n)
 {
+    // initialize n locks
     finePeterLock *chopsticks[n];
-    fine a(id, chopsticks[id], chopsticks[id - 1]);
-    a.thinking();
+    for (int i = 0; i < n; i++)
+    {
+        chopsticks[i] = new finePeterLock();
+    }
 
+    thinking(id);
+
+    // Uses the third attempt algorithm from the slides
     if (id < n)
     {
-        acquire chopstick[i];
-        acquire choptick[(i + 1)(% 5)];
+        chopsticks[id]->lock(id);
+        chopsticks[(id + 1) % n]->lock((id + 1) % n);
     }
     else
     {
-        acquire chopstick[(i + 1) % n];
+        chopsticks[id]->lock(id);
+        chopsticks[(id + 1) % n]->lock((id + 1) % n);
     }
-    // eat
-    release chopstick[i] release chopstick[(i + 1)(% n)];
+    // critical section
+    eating(id);
+    // release
+    chopsticks[id]->unlock(id);
+    chopsticks[(id + 1) % n]->unlock((id + 1) % n);
 }
 
 int main(int argc, char *argv[])

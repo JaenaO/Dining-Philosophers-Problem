@@ -48,45 +48,40 @@ public:
     {
         cout << "Philosopher " << pnum << ": starts thinking\n";
         this_thread::sleep_for(chrono::milliseconds(sleep));
-
         cout << "Philosopher " << pnum << ": ends thinking\n";
 
         // philosopher is now hungry
-        bool readyToEat = false;
-        int iOrj;
-        while (readyToEat == false)
-        {
-            if (i->checkLockStatus() == 0)
-            {
-                iOrj = 0;
-                readyToEat = true;
-            }
-            else if (j->checkLockStatus() == 0)
-            {
-                iOrj = 1;
-                readyToEat = true;
-            }
-            // spin until it finds an open lock
-        }
+        // bool readyToEat = false;
+        // int iOrj;
+        // while (readyToEat == false)
+        // {
+        //     if (i->checkLockStatus() == 0)
+        //     {
+        //         iOrj = 0;
+        //         readyToEat = true;
+        //     }
+        //     else if (j->checkLockStatus() == 0)
+        //     {
+        //         iOrj = 1;
+        //         readyToEat = true;
+        //     }
+        //     // spin until it finds an open lock
+        // }
 
-        if (iOrj == 0)
-        {
-            eating(i);
-        }
-        else
-        {
-            eating(j);
-        }
+        // if (iOrj == 0)
+        // {
+        //     eating(i);
+        // }
+        // else
+        // {
+        //     eating(j);
+        // }
     }
 
-    void eating(finePeterLock *L)
+    void eating()
     {
         cout << "Philosopher " << pnum << ": starts eating\n";
-        // lock processes
-        L->lock(pnum);
-        // nom nom nom
         this_thread::sleep_for(chrono::milliseconds(sleep));
-        L->unlock(pnum);
         cout << "Philosopher " << pnum << ": ends eating\n";
     }
 
