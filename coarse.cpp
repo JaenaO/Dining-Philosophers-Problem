@@ -6,6 +6,7 @@
 #include <random>
 #include <unistd.h>
 #include <chrono>
+#include <cmath>
 
 using namespace std;
 
@@ -18,66 +19,92 @@ class PetersonLock{
 
     // constructor to initalize the variables
     PetersonLock(){ 
-      flag[0] = false;
-      flag[1] = false;
-      turn = 0;
+      flag[0].store(false, memory_order_relaxed);
+      flag[1].store(false, memory_order_relaxed);
+      turn.store(0, memory_order_relaxed);
+      
     }
 
     // lock function for a certain thread, pid, to acquire the lock
     // alogrithm follows the solution given in the slides
     void lock(int pid){ 
-      flag[pid] = true;
-      turn = 1 - pid;
+      flag[pid].store(true, memory_order_release);
+      turn.store(1-pid, memory_order_release);
 
-      while(flag[1-pid] && turn != pid) // other wants and their turn
+      while(flag[1-pid].load(memory_order_acquire) && turn.load(memory_order_acquire) != pid) // other wants and their turn
         ;  // spin
     }
 
     // unlock function for a certain thread, pid, to release the lock
     void unlock(int pid){
-      flag[pid] = false;
+      flag[pid].store(false, memory_order_release);
     }
 };
-
 
 //our tournament tree lock implementation
 //this lock is the coarse solution to the dining philosophers problem
-class TTLock{  
+class TTLock {
+  private:
+    int n; // number of philosophers n
+    int numLocks; // number of locks
+    PetersonLock* locks;  // Tree structure stored as an array
+  
   public:
-    int n; // number of philosophers
-    int locks;  // number of locks in the tree
-    PetersonLock* nodes;  // create an array of peterson locks
-
-    // constructor to initialize the number of philosophers, locks, and array
-    TTLock(int num){ 
-      n = num;
-      locks = n-1;
-      nodes = new PetersonLock[locks];
+    // constructor to initialize the number of philosophers and locks and locks array
+    TTLock(int philosophers){
+      n = philosophers;
+      numLocks = n-1;
+      locks = new PetersonLock[numLocks];
+    }
+  
+    // acquire function to acquire the lock for a certain philosopher pid
+    // when it "wins" the tournament, it will go into the critical section
+    void acquire(int pid) {
+      int start = numLocks+pid;
+      int depth = start%2;
+      acquire_helper(start, depth);
     }
 
-    // recursive acquire function to acquire the lock for a certain thread, pid
-    // it goes up the tree and acquires locks on the way until it reaches the root where it wins
-    // when it becomes the winner of the tournament will be the one to acquire the lock and go into critical section
-    void acquire(int pid){
-      
+    // helper function to acquire the locks
+    // it will be called by the acquire function and assist in acquiring the locks with recursion
+    // the parameters are the current node and the depth of the tree
+    void acquire_helper(int currentNode, int depth){
+      if (currentNode == 0){ // base case: current has reached the root and can go into the critical section
+        return;
+      }
+      else{
+        int nextNode = (currentNode-1)/2;
+        locks[nextNode].lock(depth);
+        
+        int newDepth = nextNode%2;
+        acquire_helper(nextNode, newDepth);
+      }
     }
-    
-    // recursive release function to release the lock for a certain thread, pid
-    // it goes down the tree and unlocks the locks that were previously acquired by the thread
-    void release(int pid){
-      
+  
+    // release function to release the lock for a certain philosopher pid
+    // it will go back up the tree and release all the locks it acquired
+    void release(int pid) {
+      int start = numLocks+pid;
+      int depth = start%2;
+      release_helper(start, depth);
     }
 
-    // function to get the number of philosophers
-    int getn(){
-      return n;
-    }
+    // helper function to release the locks
+    // it will be called by the release function and assist in releasing the locks with recursion
+    // the parameters are the current node and the depth of the tree
+    void release_helper(int currentNode, int depth){
+      if (currentNode == 0){ // base case: current has reached the root so all locks have been released
+        return;
+      }
+      else{
+        int nextNode = (currentNode-1)/2;
+        locks[nextNode].unlock(depth);
 
-    // destructor to delete the array of locks/tree nodes
-    ~TTLock(){  
-      delete[] nodes;
+        int newDepth = nextNode%2;
+        release_helper(nextNode, newDepth);
+      } 
     }
-};
+  };
 
 // helper function for the philosopher functions below
 // it generates a random number between 1 and 500ms for the sleep time
@@ -96,7 +123,7 @@ void thinking(int i){
   chrono::milliseconds rand = random_ms();
   cout << "Philosopher " << i << ": starts thinking." << endl;
   this_thread::sleep_for(rand); 
-  cout << "Philosopher " << i << ": ends thinking.\tThinking time: " << rand.count() << "ms" << endl;
+  cout << "Philosopher " << i << ": ends thinking.\t" << i << " thinking time: " << rand.count() << "ms" << endl;
 }
 
 // philosopher function where it states when it starts and ends eating
@@ -106,14 +133,12 @@ void eating(int i){
   chrono::milliseconds rand = random_ms();
   cout << "Philosopher " << i << ": starts eating." << endl;
   this_thread::sleep_for(rand); 
-  cout << "Philosopher " << i << ": ends eating.\tEating time: " << rand.count() << "ms" << endl;
+  cout << "Philosopher " << i << ": ends eating.\t" << i << " eating time: " << rand.count() << "ms" << endl;
 }
 
 // the main philosopher function where it calls the thinking and eating functions above
 // i is the philosopher/thread number and it uses the TTLock for synchronization
 auto philosopherDine = [](int i, TTLock& lock){
-  int n = lock.getn();
-
   thinking(i);
   lock.acquire(i);
   eating(i);
@@ -129,18 +154,16 @@ int main(int argc, char *argv[])
   }
 
   int n = atoi(argv[1]);
-  thread* philosophers = new thread[n];  // create an array of threads
-  TTLock coarseLock = TTLock(n);
+  thread* philosophers = new thread[n];  // create an array of threads for n philosophers
+  TTLock coarseLock = TTLock(n); 
 
   for(int i=0; i<n; i++){
     philosophers[i] = thread(philosopherDine, i, ref(coarseLock));
   }
   
-  for( int i=0; i<n; i++){
+  for(int i=0; i<n; i++){
     philosophers[i].join();  // wait for all threads to finish
   }
-
-  delete[] philosophers;
 
   return 0;
 }
