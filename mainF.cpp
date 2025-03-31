@@ -20,6 +20,17 @@ using namespace std;
 
 mutex cout_mutex;
 
+// jaena's random_ms() function from coarse.cpp
+chrono::milliseconds random_ms()
+{
+    // code from websites provided in instructions pdf
+    random_device rd;                           // a seed source for the random number engine
+    mt19937 gen(rd());                          // mersenne_twister_engine seeded with rd()
+    uniform_int_distribution<> distrib(1, 500); // range of random numbers 1-500
+    return chrono::milliseconds(distrib(gen));
+}
+
+// print without interruptions
 void safe_print(const string &message)
 {
     lock_guard<mutex> guard(cout_mutex);
@@ -28,45 +39,52 @@ void safe_print(const string &message)
 
 void thinking(int id)
 {
-    safe_print("Philosopher " + to_string(id) + ": starts thinking");
-    this_thread::sleep_for(chrono::milliseconds(500));
-    safe_print("Philosopher " + to_string(id) + ": ends thinking");
+    // safe_print("Philosopher " + to_string(id + 1) + ": starts thinking");
+    this_thread::sleep_for(random_ms());
+    // safe_print("Philosopher " + to_string(id + 1) + ": ends thinking");
 }
 
 void eating(int id)
 {
-    safe_print("Philosopher " + to_string(id) + ": starts eating");
-    this_thread::sleep_for(chrono::milliseconds(500));
-    safe_print("Philosopher " + to_string(id) + ": ends eating");
+    safe_print("Philosopher " + to_string(id + 1) + ": starts eating");
+    this_thread::sleep_for(random_ms());
+    safe_print("Philosopher " + to_string(id + 1) + ": ends eating");
 }
 
-void philosopher(int id, int n)
+void philosopher(int id, int n, finePeterLock *chopsticks)
 {
-    // initialize n locks
-    finePeterLock *chopsticks[n];
-    for (int i = 0; i < n; i++)
-    {
-        chopsticks[i] = new finePeterLock();
-    }
-
     thinking(id);
 
-    // Uses the third attempt algorithm from the slides
-    if (id < n)
+    // if (id == 0)
+    // {
+    //     chopsticks[0].lock(0, 0);
+    // }
+
+    // if (id == 1)
+    // {
+    //     chopsticks[0].lock(1, 1);
+    // }
+
+    while (true)
     {
-        chopsticks[id]->lock(id);
-        chopsticks[(id + 1) % n]->lock((id + 1) % n);
+        // Uses the third attempt algorithm from the slides
+        if (id < n - 1)
+        {
+            chopsticks[id].lock(1, id);
+            chopsticks[(id + 1) % n].lock(0, id);
+        }
+        else // wrap around
+        {
+            chopsticks[(id + 1) % n].lock(0, id);
+            chopsticks[id].lock(1, id);
+        }
+        // critical section
+        eating(id);
+        // release
+        chopsticks[id].unlock(1);
+        chopsticks[(id + 1) % n].unlock(0);
+        break;
     }
-    else
-    {
-        chopsticks[id]->lock(id);
-        chopsticks[(id + 1) % n]->lock((id + 1) % n);
-    }
-    // critical section
-    eating(id);
-    // release
-    chopsticks[id]->unlock(id);
-    chopsticks[(id + 1) % n]->unlock((id + 1) % n);
 }
 
 int main(int argc, char *argv[])
@@ -80,12 +98,19 @@ int main(int argc, char *argv[])
 
     int n = atoi(argv[1]);
 
+    // initialize locks
+    // vector<finePeterLock> chopsticks(n);
+    // for (int i = 0; i < n; i++)
+    // {
+    //     chopsticks[i] = new finePeterLock();
+    // }
+
+    vector<finePeterLock> chopsticks(n);
     vector<thread> philosophers;
 
     for (int i = 0; i < n; ++i)
     {
-        philosophers.emplace_back([i, n]()
-                                  { philosopher(i, n); });
+        philosophers.emplace_back(philosopher, i, n, chopsticks.data());
     }
 
     for (auto &t : philosophers)

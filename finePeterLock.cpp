@@ -30,16 +30,18 @@ public:
         turn.store(0, memory_order_relaxed);
     }
 
-    void lock(int process) // process = i, process+1 = j
+    void lock(int pid, int p) // PROCESS MUST BE 0 OR 1 !!!!
     {
-        int other = 1 - process;
-        flag[process].store(true, memory_order_relaxed);
-        turn.store(other, memory_order_relaxed);
-        // wait until other process is done
-        while (flag[other].load(memory_order_acquire) && turn.load(memory_order_acquire) == other)
+        flag[pid].store(true, memory_order_release);
+        turn.store(1 - pid, memory_order_release); // Give turn to the other process
+        // Wait until the other process is not interested or it's your turn
+        // flag[1 - pid].load(memory_order_acquire) && turn.load(memory_order_acquire) == (1 - pid)
+        while (flag[1 - pid].load(memory_order_acquire) && turn.load(memory_order_acquire) == (1 - pid))
         {
             // spin
+            // cout << p << endl;
         }
+        // cout << p << " here\n";
     }
 
     void unlock(int process)
