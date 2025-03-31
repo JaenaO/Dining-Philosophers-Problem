@@ -2,7 +2,7 @@ CC = g++ -std=c++11
 CCFLAGS = -g -Wall -pthread
 INCLUDES =
 LIBRARIES =
-EXECUTABLES = coarse
+EXECUTABLES = coarse fine
 
 # Command for creating an executable file from a .cpp file
 .cpp:
