@@ -15,7 +15,7 @@
 #include <signal.h>
 #include <cstdlib> // For exit()
 #include <mutex>
-#include "fine.cpp"
+#include "finePeterLock.cpp"
 using namespace std;
 
 mutex cout_mutex;
@@ -39,9 +39,9 @@ void safe_print(const string &message)
 
 void thinking(int id)
 {
-    // safe_print("Philosopher " + to_string(id + 1) + ": starts thinking");
+    safe_print("Philosopher " + to_string(id + 1) + ": starts thinking");
     this_thread::sleep_for(random_ms());
-    // safe_print("Philosopher " + to_string(id + 1) + ": ends thinking");
+    safe_print("Philosopher " + to_string(id + 1) + ": ends thinking");
 }
 
 void eating(int id)
