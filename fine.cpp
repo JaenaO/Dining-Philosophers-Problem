@@ -82,7 +82,6 @@ void philosopher(int id, int n, finePeterLock *chopsticks)
 
 int main(int argc, char *argv[])
 {
-    cout << "Fine Solution: \n\n";
     if (argc < 2 || atoi(argv[1]) < 2)
     {
         cout << "Usage: " << argv[0] << " <n philosophers (at least 2)>" << endl;
