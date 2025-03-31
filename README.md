@@ -5,11 +5,10 @@ Professor Mittal
 
 Instructions:
 
-1. Move to the directory containing coarse.cpp, finePeterLock.cpp, main.cpp, fine.cpp, petersons_algorithm.cpp, and makefile.
+1. Move to the directory containing coarse.cpp, finePeterLock.cpp, fine.cpp, and makefile.
 Ex. cd myfolder
     ls
-    coarse.cpp      finePeterLock.cpp       makefile        main.cpp
-    mainF.cpp       petersons_algorithm.cpp
+    coarse.cpp      finePeterLock.cpp       makefile        fine.cpp    
 
 2. Enter the command "make" into the terminal.
 
